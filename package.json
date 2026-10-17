@@ -1,0 +1,1 @@
+{ "name": "soleil-atelier", "private": true, "license": "MIT", "scripts": { "test": "node tests/astro.test.js", "test:ui": "node tests/ui.test.js" } }

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soleil Atelier — heure dorée, heure bleue et course du soleil</title>
+  <meta name="description" content="Planificateur gratuit de lumière solaire et lunaire pour photographes, vidéastes et cinéastes : heure dorée, heure bleue, course du soleil, lune, ombres, alignements. Tout dans le navigateur.">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#sky" data-i18n="skip">Aller au diagramme</a>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon.svg" width="40" height="40" alt="">
+      <div>
+        <h1>Soleil Atelier <span class="tf" lang="kab">ⵜⴰⴼⵓⴽⵜ</span></h1>
+        <p data-i18n="tagline">Planificateur de lumière solaire et lunaire pour photo, vidéo et cinéma</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <label class="sr" for="lang" data-i18n="language">Langue</label>
+      <select id="lang"><option value="fr">Français</option><option value="en">English</option><option value="kab">Taqbaylit</option></select>
+      <label class="check" id="tfngWrap" hidden><input type="checkbox" id="tfng"> <span data-i18n="tifinagh">Tifinagh</span></label>
+      <button class="btn icon" id="themeBtn" type="button" data-i18n-title="uiTheme" title="Interface claire / sombre" aria-label="Interface claire / sombre">◐</button>
+      <button class="btn" id="helpBtn" type="button" data-i18n="help">Aide</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ======================= controls -->
+    <aside class="panel" aria-label="Réglages">
+      <section class="card">
+        <h2 data-i18n="place">Lieu</h2>
+        <label class="field"><span data-i18n="city">Ville</span><select id="city"></select></label>
+        <div class="grid2">
+          <label class="field"><span data-i18n="lat">Latitude (°N)</span><input type="number" id="lat" step="0.0001" min="-89.99" max="89.99"></label>
+          <label class="field"><span data-i18n="lon">Longitude (°E)</span><input type="number" id="lon" step="0.0001" min="-180" max="180"></label>
+        </div>
+        <label class="field"><span><span data-i18n="tz">Fuseau horaire</span> <output id="tzOff" class="mono"></output></span><select id="tz"></select></label>
+        <button class="btn ghost wide" id="geoBtn" type="button">◎ <span data-i18n="myPos">Ma position</span></button>
+      </section>
+
+      <section class="card">
+        <h2 data-i18n="date">Date</h2>
+        <div class="row">
+          <button class="btn icon" id="prevDay" type="button" data-i18n-title="prevDay" title="Jour précédent" aria-label="Jour précédent">‹</button>
+          <input type="date" id="date" aria-label="Date">
+          <button class="btn icon" id="nextDay" type="button" data-i18n-title="nextDay" title="Jour suivant" aria-label="Jour suivant">›</button>
+        </div>
+        <div class="field">
+          <span class="between"><label for="time" data-i18n="time">Heure</label><output id="timeOut" class="mono big"></output></span>
+          <input type="range" id="time" min="0" max="1439" step="1">
+        </div>
+        <div class="row wrap">
+          <button class="btn" id="todayBtn" type="button" data-i18n="today">Aujourd’hui</button>
+          <button class="btn" id="nowBtn" type="button" data-i18n="now">Maintenant</button>
+          <button class="btn" id="animBtn" type="button" aria-pressed="false">▶ <span data-i18n="animate">Animer la journée</span></button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 data-i18n="camera">Caméra et ombre</h2>
+        <label class="check"><input type="checkbox" id="cam"> <span data-i18n="showCam">Afficher l’axe de la caméra</span></label>
+        <label class="field"><span class="between"><span data-i18n="bearing">Direction visée (azimut)</span><output id="bearingOut" class="mono"></output></span><input type="range" id="bearing" min="0" max="359" step="1"></label>
+        <div class="grid2">
+          <label class="field"><span data-i18n="focal">Focale (mm, plein format)</span><input type="number" id="focal" min="8" max="800" step="1"></label>
+          <label class="field"><span data-i18n="fov">Champ horizontal</span><input type="number" id="fov" min="5" max="140" step="1"></label>
+        </div>
+        <label class="field"><span data-i18n="objH">Hauteur de l’objet (m)</span><input type="number" id="objH" min="0.1" max="500" step="0.1"></label>
+      </section>
+    </aside>
+
+    <!-- ======================= results -->
+    <section class="results">
+      <div class="readouts">
+        <article class="card readout sunr">
+          <h2><span class="dot sun"></span><span data-i18n="sun">Soleil</span></h2>
+          <dl>
+            <div><dt data-i18n="az">Azimut</dt><dd id="sunAz" class="mono"></dd></div>
+            <div><dt data-i18n="elev">Élévation</dt><dd id="sunEl" class="mono"></dd></div>
+            <div><dt data-i18n="lightNow">Lumière</dt><dd id="sunPhase"></dd></div>
+            <div><dt data-i18n="shadowLen">Ombre</dt><dd id="sunShadow"></dd></div>
+          </dl>
+          <p id="camInfo" class="caminfo"></p>
+        </article>
+        <article class="card readout moonr">
+          <h2><canvas id="moonIcon" width="44" height="44" aria-hidden="true"></canvas><span data-i18n="moon">Lune</span></h2>
+          <dl>
+            <div><dt data-i18n="az">Azimut</dt><dd id="moonAz" class="mono"></dd></div>
+            <div><dt data-i18n="elev">Élévation</dt><dd id="moonEl" class="mono"></dd></div>
+            <div><dt data-i18n="illum">Illumination</dt><dd id="moonIll"></dd></div>
+            <div><dt data-i18n="distance">Distance</dt><dd id="moonDist" class="mono"></dd></div>
+          </dl>
+          <p class="small mute" id="moonNext"></p>
+        </article>
+      </div>
+
+      <div class="viz">
+        <article class="card skycard">
+          <h2 data-i18n="sky">Course du soleil et de la lune</h2>
+          <div class="skywrap"><canvas id="sky" tabindex="0" role="img" data-i18n-aria="skyAria" aria-label="Diagramme du ciel"></canvas></div>
+          <ul class="legend">
+            <li><i class="sw today"></i><span data-i18n="lgToday">Course du jour</span></li>
+            <li><i class="sw sol"></i><span data-i18n="lgSolstices">Solstices</span></li>
+            <li><i class="sw eq"></i><span data-i18n="lgEquinox">Équinoxe</span></li>
+            <li><i class="sw moonl"></i><span data-i18n="lgMoon">Lune</span></li>
+            <li><i class="sw rs"></i><span data-i18n="lgRiseSet">Directions lever / coucher</span></li>
+            <li><i class="sw cam"></i><span data-i18n="lgCamera">Champ de la caméra</span></li>
+          </ul>
+        </article>
+        <article class="card eventscard">
+          <h2 data-i18n="events">Horaires du jour</h2>
+          <p id="polar" class="note" hidden></p>
+          <table class="events"><tbody id="events"></tbody></table>
+          <p class="small" id="dayLen"></p>
+          <p class="small mute" id="goldenTotal"></p>
+        </article>
+      </div>
+
+      <article class="card">
+        <h2 data-i18n="timeline">Lumière sur 24 h</h2>
+        <canvas id="timeline" class="chart tl" tabindex="0" role="slider" data-i18n-aria="timelineAria" aria-label="Frise de la journée"></canvas>
+        <ul class="legend phases" id="phaseLegend"></ul>
+        <h3 data-i18n="elevChart">Hauteur du soleil et de la lune</h3>
+        <canvas id="elev" class="chart el" role="img" data-i18n-aria="elevChart" aria-label="Hauteur"></canvas>
+      </article>
+
+      <article class="card">
+        <div class="tabs" role="tablist">
+          <button role="tab" id="tab-days" aria-controls="pane-days" aria-selected="true" data-i18n="tabDays">Jours suivants</button>
+          <button role="tab" id="tab-year" aria-controls="pane-year" aria-selected="false" data-i18n="tabYear">Année</button>
+          <button role="tab" id="tab-align" aria-controls="pane-align" aria-selected="false" data-i18n="tabAlign">Alignement</button>
+        </div>
+        <div role="tabpanel" id="pane-days" aria-labelledby="tab-days">
+          <label class="field inline"><span data-i18n="days">Nombre de jours</span>
+            <select id="days"><option>7</option><option>14</option><option>30</option></select></label>
+          <div class="scroll"><table class="data"><thead><tr id="daysHead"></tr></thead><tbody id="daysBody"></tbody></table></div>
+        </div>
+        <div role="tabpanel" id="pane-year" aria-labelledby="tab-year" hidden>
+          <canvas id="year" class="chart yr" role="img" data-i18n-aria="yearAria" aria-label="Année"></canvas>
+          <p class="small mute" data-i18n="yearHint">Les sauts d’une heure correspondent aux changements d’heure d’été.</p>
+        </div>
+        <div role="tabpanel" id="pane-align" aria-labelledby="tab-align" hidden>
+          <p class="small" data-i18n="alignIntro"></p>
+          <div class="alignform">
+            <label class="field"><span data-i18n="target">Azimut cible (°)</span><input type="number" id="alTarget" min="0" max="359.9" step="0.1" value="270"></label>
+            <label class="field"><span data-i18n="tol">Tolérance (±°)</span><input type="number" id="alTol" min="0.2" max="15" step="0.1" value="1.5"></label>
+            <label class="field"><span data-i18n="body">Astre</span><select id="alBody"><option value="sun" data-i18n="sun">Soleil</option><option value="moon" data-i18n="moon">Lune</option></select></label>
+            <label class="field"><span data-i18n="eventKind">Événement</span><select id="alKind"><option value="both" data-i18n="both">Les deux</option><option value="rise" data-i18n="rise">Lever</option><option value="set" data-i18n="set">Coucher</option></select></label>
+          </div>
+          <div class="row">
+            <button class="btn ghost" id="alUseCam" type="button" data-i18n="useBearing">Utiliser la direction de la caméra</button>
+            <button class="btn primary" id="alGo" type="button" data-i18n="search">Chercher sur 12 mois</button>
+          </div>
+          <p id="alStatus" class="small" role="status"></p>
+          <div class="scroll"><table class="data"><thead><tr id="alHead"></tr></thead><tbody id="alBody2"></tbody></table></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2 data-i18n="exports">Exporter et partager</h2>
+        <div class="row wrap">
+          <button class="btn" id="exSky" type="button" data-i18n="exportSky">Diagramme PNG</button>
+          <button class="btn" id="exYear" type="button" data-i18n="exportYear">Graphique annuel PNG</button>
+          <button class="btn" id="exCsv" type="button" data-i18n="exportCsv">Tableau CSV</button>
+          <button class="btn" id="exIcs" type="button" data-i18n="exportIcs">Calendrier .ics</button>
+          <button class="btn" id="exJson" type="button" data-i18n="exportJson">Réglages JSON</button>
+          <label class="btn" for="imJson"><span data-i18n="importJson">Ouvrir un JSON</span></label>
+          <input type="file" id="imJson" accept=".json,application/json" class="sr">
+          <button class="btn primary" id="copyLink" type="button" data-i18n="copyLink">Copier le lien</button>
+        </div>
+        <p class="small mute" data-i18n="privacy"></p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <a href="https://github.com/salimadour31-boop/soleil-atelier" data-i18n="footer">Logiciel libre (MIT) — code source sur GitHub</a>
+  </footer>
+
+  <dialog id="help">
+    <h2 data-i18n="helpTitle">Comment ça marche</h2>
+    <div data-i18n-html="helpBody"></div>
+    <form method="dialog"><button class="btn primary" data-i18n="close">Fermer</button></form>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/astro.js"></script>
+  <script src="js/cities.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

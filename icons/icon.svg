@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Soleil Atelier">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18285e"/><stop offset=".62" stop-color="#4474e6"/><stop offset=".63" stop-color="#f6a62a"/><stop offset="1" stop-color="#ffd27a"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#sky)"/>
+  <path d="M8 40 A24 24 0 0 1 56 40" fill="none" stroke="#ffe9ad" stroke-width="2" stroke-dasharray="3 3"/>
+  <circle cx="40" cy="22" r="7" fill="#ffb82e"/><circle cx="40" cy="22" r="3.5" fill="#fff4cf"/>
+  <path d="M0 40 H64" stroke="#0a1230" stroke-width="2"/>
+  <path d="M0 64 V48 L14 42 L24 47 L36 40 L50 46 L64 43 V64 Z" fill="#0a1230" opacity=".85"/>
+</svg>
